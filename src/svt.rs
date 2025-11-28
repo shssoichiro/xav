@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::convert::TryFrom;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -30,7 +31,7 @@ struct EncConfig<'a> {
     grain_table: Option<&'a Path>,
 }
 
-fn make_enc_cmd(cfg: &EncConfig, quiet: bool, width: u32, height: u32) -> Command {
+fn make_enc_cmd(cfg: &EncConfig, quiet: bool, width: u32, height: u32, frames: u32) -> Command {
     let mut cmd = Command::new("SvtAv1EncApp");
 
     let width_str = width.to_string();
@@ -85,6 +86,8 @@ fn make_enc_cmd(cfg: &EncConfig, quiet: bool, width: u32, height: u32) -> Comman
 
     if quiet {
         cmd.arg("--no-progress").arg("1");
+    } else {
+        cmd.arg("--frames").arg(frames.to_string());
     }
 
     cmd.args(cfg.params.split_whitespace())
@@ -958,7 +961,8 @@ fn enc_tq_probe(
     let name = format!("{:04}_{:.2}.ivf", pkg.chunk.idx, crf);
     let out = work_dir.join("split").join(&name);
     let cfg = EncConfig { inf, params, crf: crf as f32, output: &out, grain_table: grain };
-    let mut cmd = make_enc_cmd(&cfg, false, pkg.width, pkg.height);
+    let frames = u32::try_from(pkg.frame_count).expect("chunk frame count exceeds u32 range");
+    let mut cmd = make_enc_cmd(&cfg, false, pkg.width, pkg.height, frames);
     let mut child = cmd.spawn().unwrap();
 
     if let Some(p) = prog {
@@ -1029,7 +1033,8 @@ fn enc_chunk(
 ) {
     let out = work_dir.join("encode").join(format!("{:04}.ivf", pkg.chunk.idx));
     let cfg = EncConfig { inf, params, crf, output: &out, grain_table: grain };
-    let mut cmd = make_enc_cmd(&cfg, false, pkg.width, pkg.height);
+    let frames = u32::try_from(pkg.frame_count).expect("chunk frame count exceeds u32 range");
+    let mut cmd = make_enc_cmd(&cfg, false, pkg.width, pkg.height, frames);
     cmd.stderr(std::process::Stdio::piped());
     let mut child = cmd.spawn().unwrap();
 
