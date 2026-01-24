@@ -1,3 +1,5 @@
+#![allow(clippy::decimal_literal_representation)]
+
 #[cfg(feature = "vship")]
 use std::sync::OnceLock;
 use std::{
@@ -12,7 +14,7 @@ use std::{
     panic::set_hook,
     path::{Path, PathBuf},
     sync::atomic::Ordering::Relaxed,
-    thread::{JoinHandle, available_parallelism, spawn},
+    thread::{JoinHandle, spawn},
     time::{Duration, Instant},
 };
 
@@ -29,7 +31,6 @@ mod avx2;
 #[cfg(target_feature = "avx512bw")]
 mod avx512;
 mod chunk;
-mod crop;
 mod decode;
 mod encode;
 mod encoder;
@@ -62,7 +63,6 @@ use chunk::{
     Chunk, chunkify, get_resume, init_elapsed, load_scenes, merge_out, translate_scenes,
     validate_scenes,
 };
-use crop::{CropDetectConfig, detect_crop};
 #[cfg(feature = "vship")]
 use encode::TQ_SCORES;
 use encode::encode_all;
@@ -658,15 +658,7 @@ fn main_with_args(args: &Args) -> Result<(), Xerr> {
 
     let audio_handle = spawn_audio(args, &work_dir, &inf);
 
-    let thr = unsafe { available_parallelism().unwrap_unchecked().get() as i32 };
-    let config = CropDetectConfig {
-        sample_count: 13,
-        min_black_pixels: 2,
-    };
-    let crop = match detect_crop(&args.input, &inf, &config, thr) {
-        Ok(detected) if detected.has_crop() => detected.to_tuple(),
-        _ => (0, 0),
-    };
+    let crop = (0, 0);
 
     let audio_files = scd_and_audio(args, &inf, crop, audio_handle)?;
 

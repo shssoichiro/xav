@@ -640,6 +640,7 @@ impl VideoDecoder {
         }
     }
 
+    #[allow(dead_code)]
     pub const fn frame_ref(&self) -> *const VidFrame {
         self.frame
     }
