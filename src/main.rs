@@ -650,6 +650,7 @@ fn main_with_args(args: &Args) -> Result<(), Xerr> {
         save_args(&work_dir)?;
     }
 
+    let enc_start = Instant::now();
     if args.sc_only && args.scene_file.exists() {
         return Err(format!("Scene file already exists: {}", args.scene_file.display()).into());
     }
@@ -701,9 +702,7 @@ fn main_with_args(args: &Args) -> Result<(), Xerr> {
 
     let prior_secs = get_resume(&work_dir).map_or(0, |r| r.prior_secs);
     init_elapsed(prior_secs);
-    let enc_start = Instant::now();
     encode_all(&chunks, &inf, &args, &args.input, &work_dir, pipe_reader);
-    let enc_time = enc_start.elapsed() + Duration::from_secs(prior_secs);
 
     let video_mkv = work_dir.join("encode").join("video.mkv");
 
@@ -729,6 +728,7 @@ fn main_with_args(args: &Args) -> Result<(), Xerr> {
     {
         finalize_audio(audio_spec, audio_files, &args, &inf, &video_mkv, &work_dir)?;
     }
+    let enc_time = enc_start.elapsed() + Duration::from_secs(prior_secs);
 
     print_summary(&args, &inf, &chunks, crop, enc_time);
     remove_dir_all(&work_dir)?;
