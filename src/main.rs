@@ -776,22 +776,35 @@ fn print_summary(
     let (final_width, final_height) = (inf.width - crop.1 * 2, inf.height - crop.0 * 2);
 
     println!(
-    "\n{P}┏━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n\
-{P}┃ {G}✅ {Y}DONE   {P}┃ {R}{:<30.30} {G}󰛂 {G}{:<30.30} {P}┃\n\
-{P}┣━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n\
-{P}┃ {Y}Size      {P}┃ {R}{:<98} {P}┃\n\
-{P}┣━━━━━━━━━━━╋━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n\
-{P}┃ {Y}Video     {P}┃ {W}{:<4}x{:<4} {P}┃ {B}{:.3} fps {P}┃ {W}{:02}{C}:{W}{:02}{C}:{W}{:02}{:<30} {P}┃\n\
-{P}┣━━━━━━━━━━━╋━━━━━━━━━━━┻━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n\
-{P}┃ {Y}Time      {P}┃ {W}{:02}{C}:{W}{:02}{C}:{W}{:02} {B}@ {:>6.2} fps{:<42} {P}┃\n\
-{P}┗━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛{N}",
-    unsafe { args.input.file_name().unwrap_unchecked() }.to_string_lossy(),
-    unsafe { args.output.file_name().unwrap_unchecked() }.to_string_lossy(),
-    format!("{} {C}({:.0} kb/s) {G}󰛂 {G}{} {C}({:.0} kb/s) {}{} {:.2}%",
-        fmt_size(input_size), input_br, fmt_size(output_size), output_br, change_color, arrow, change.abs()),
-    final_width, final_height, fps_rate, dh, dm, ds, "",
-    eh, em, es, enc_speed, ""
-);
+        "\n{P}┃ {G}✅ {Y}DONE   {P}┃ {R}{:<30.30} {G}󰛂 {G}{:<30.30} {P}┃\n{P}┃ {Y}Size      {P}┃ \
+         {R}{:<98} {P}┃\n{P}┃ {Y}Video     {P}┃ {W}{:<4}x{:<4} {P}┃ {B}{:.3} fps {P}┃ \
+         {W}{:02}{C}:{W}{:02}{C}:{W}{:02}{:<30} {P}┃\n{P}┃ {Y}Time      {P}┃ \
+         {W}{:02}{C}:{W}{:02}{C}:{W}{:02} {B}@ {:>6.2} fps{:<42} {P}┃{N}",
+        unsafe { args.input.file_name().unwrap_unchecked() }.to_string_lossy(),
+        unsafe { args.output.file_name().unwrap_unchecked() }.to_string_lossy(),
+        format!(
+            "{} {C}({:.0} kb/s) {G}󰛂 {G}{} {C}({:.0} kb/s) {}{} {:.2}%",
+            fmt_size(input_size),
+            input_br,
+            fmt_size(output_size),
+            output_br,
+            change_color,
+            arrow,
+            change.abs()
+        ),
+        final_width,
+        final_height,
+        fps_rate,
+        dh,
+        dm,
+        ds,
+        "",
+        eh,
+        em,
+        es,
+        enc_speed,
+        ""
+    );
 }
 
 fn main() -> Result<(), Xerr> {
