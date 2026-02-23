@@ -1,17 +1,14 @@
 use std::{
     ffi::NulError,
     fmt::{Arguments, Display},
-    io::{Error, Write as _, stderr, stdout},
+    io::{Error, Write as _, stderr},
     num::{ParseFloatError, ParseIntError},
-    sync::atomic::{AtomicBool, Ordering::Relaxed},
 };
 
 use libc::_exit;
 use thiserror::Error;
 
 use crate::error::Xerr::Msg;
-
-pub static IN_ALT_SCREEN: AtomicBool = AtomicBool::new(false);
 
 #[derive(Error, Debug)]
 pub enum Xerr {
@@ -52,10 +49,6 @@ impl From<String> for Xerr {
 #[cold]
 #[inline(never)]
 pub fn fatal<E: Display>(e: E) -> ! {
-    if IN_ALT_SCREEN.load(Relaxed) {
-        print!("\x1b[?25h\x1b[?1049l");
-        _ = stdout().flush();
-    }
     _ = writeln!(stderr(), "{e}");
     unsafe { _exit(1) }
 }
@@ -63,9 +56,5 @@ pub fn fatal<E: Display>(e: E) -> ! {
 #[cold]
 #[inline(never)]
 pub fn eprint(args: Arguments<'_>) {
-    if IN_ALT_SCREEN.load(Relaxed) {
-        print!("\x1b[?1049l");
-        _ = stdout().flush();
-    }
     _ = writeln!(stderr(), "{args}");
 }

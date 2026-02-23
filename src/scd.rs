@@ -133,8 +133,8 @@ pub fn fd_scenes(
 
     if let Ok(mut pb) = progs.lock() {
         pb.up_scenes_final(tot_frames, line);
+        pb.finish_scenes();
     }
-    ProgsBar::finish_scenes();
 
     let mut scores: Vec<Option<(f64, f64)>> = vec![None; tot_frames];
     for (k, v) in results.scores {

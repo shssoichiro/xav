@@ -9,16 +9,14 @@ use std::{
         create_dir_all, metadata, read_to_string, remove_dir_all, remove_file, write as write_to,
     },
     hash::{Hash as _, Hasher as _},
-    io::{Write as _, stdout},
     mem::transmute_copy,
     panic::set_hook,
     path::{Path, PathBuf},
-    sync::atomic::Ordering::Relaxed,
     thread::{JoinHandle, spawn},
     time::{Duration, Instant},
 };
 
-use libc::{_exit, SIGINT, SIGSEGV, atexit, signal};
+use libc::{_exit, SIGINT, SIGSEGV, signal};
 
 use crate::{
     encoder::Encoder::{Avm, SvtAv1, Vvenc, X264, X265},
@@ -67,7 +65,7 @@ use chunk::{
 use encode::TQ_SCORES;
 use encode::encode_all;
 use encoder::Encoder;
-use error::{IN_ALT_SCREEN, Xerr, eprint, fatal};
+use error::{Xerr, eprint, fatal};
 use ffms::{DecodeStrat, VidInf, VideoDecoder, gcd, get_decode_strat, get_vidinf};
 use scd::fd_scenes;
 #[cfg(feature = "vship")]
@@ -111,14 +109,7 @@ pub struct Args {
     pub hwaccel: bool,
 }
 
-extern "C" fn restore() {
-    if IN_ALT_SCREEN.load(Relaxed) {
-        print!("\x1b[?25h\x1b[?1049l");
-        _ = stdout().flush();
-    }
-}
 extern "C" fn exit_restore(_: i32) {
-    restore();
     unsafe { _exit(130) };
 }
 
@@ -547,8 +538,6 @@ fn finalize_audio(
     let files = if let Some(f) = cached {
         f
     } else {
-        print!("\x1b[H\x1b[2J");
-        _ = stdout().flush();
         let sample_ranges = args.ranges.as_ref().map(|r| {
             r.iter()
                 .map(|&(s, e)| {
@@ -632,10 +621,6 @@ fn validate_all_scenes(scenes: &[chunk::Scene], enc: Encoder) -> Result<(), Xerr
 }
 
 fn main_with_args(args: &Args) -> Result<(), Xerr> {
-    print!("\x1b[?1049h\x1b[H\x1b[?25l");
-    _ = stdout().flush();
-    IN_ALT_SCREEN.store(true, Relaxed);
-
     let canonical_input = args.input.canonicalize()?;
     let hash = hash_input(&canonical_input);
     let work_dir = canonical_input.with_file_name(format!(".{}", &hash[..7]));
@@ -662,9 +647,6 @@ fn main_with_args(args: &Args) -> Result<(), Xerr> {
     let crop = (0, 0);
 
     let audio_files = scd_and_audio(args, &inf, crop, audio_handle)?;
-
-    print!("\x1b[H\x1b[2J");
-    _ = stdout().flush();
 
     let mut args = args.clone();
 
@@ -742,9 +724,6 @@ fn print_summary(
     crop: (u32, u32),
     enc_time: Duration,
 ) {
-    print!("\x1b[?25h\x1b[?1049l");
-    _ = stdout().flush();
-
     let input_size = metadata(&args.input).map_or(0, |m| m.len());
     let output_size = metadata(&args.output).map_or(0, |m| m.len());
     let total_frames: usize = chunks.iter().map(|c| c.end - c.start).sum();
@@ -816,23 +795,17 @@ fn main() -> Result<(), Xerr> {
     let output = args.output.clone();
 
     set_hook(Box::new(move |panic_info| {
-        print!("\x1b[?25h\x1b[?1049l");
-        _ = stdout().flush();
         eprint(format_args!("{panic_info}"));
         eprint(format_args!("{}, FAIL", output.display()));
     }));
 
     unsafe {
-        atexit(restore);
-
         let h: usize = transmute_copy(&(exit_restore as extern "C" fn(i32)));
         signal(SIGINT, h);
         signal(SIGSEGV, h);
     }
 
     if let Err(e) = main_with_args(&args) {
-        print!("\x1b[?1049l");
-        _ = stdout().flush();
         fatal(format_args!("{e}\n{}, FAIL", args.output.display()));
     }
 

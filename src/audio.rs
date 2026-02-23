@@ -324,7 +324,8 @@ fn encode_direct(
 
     progs.up_audio_final(total as usize, progs_line, 1, tid);
     drop(enc);
-    ProgsBar::finish_audio();
+
+    progs.finish_audio();
     Ok(())
 }
 
@@ -488,7 +489,8 @@ fn encode_norm(
 
     progs.up_audio_final(total as usize, progs_line, 2, tid);
     drop(enc);
-    ProgsBar::finish_audio();
+
+    progs.finish_audio();
     Ok(())
 }
 

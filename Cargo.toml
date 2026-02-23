@@ -24,6 +24,7 @@ ebur128 = "0.1.10"
 sonic-rs = "0.5.7"
 serde = { version = "1.0.228", features = ["derive"] }
 thiserror = "2.0.18"
+indicatif = "0.18"
 
 [profile.release]
 opt-level = 3

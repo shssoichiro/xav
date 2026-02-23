@@ -204,7 +204,7 @@ pub fn encode_all(
 
     let (skip_indices, completed_count, completed_frames) = build_skip_set(&resume_data);
     let stats = Some(create_stats(completed_count, &resume_data));
-    let (prog, display_handle) = ProgsTrack::new(
+    let prog = ProgsTrack::new(
         chunks,
         inf,
         args.worker,
@@ -289,7 +289,6 @@ pub fn encode_all(
     join_one(decoder);
     join_all(workers);
     drop(prog);
-    join_one(display_handle);
 }
 
 #[derive(Copy, Clone)]
@@ -743,7 +742,7 @@ fn encode_tq(
     let resume_state = Arc::new(Mutex::new(resume_data.clone()));
     let tq_logger = Arc::new(Mutex::new(Vec::new()));
     let stats = create_stats(completed_count, &resume_data);
-    let (prog, display_handle) = ProgsTrack::new(
+    let prog = ProgsTrack::new(
         chunks,
         inf,
         args.worker + args.metric_worker,
@@ -789,7 +788,6 @@ fn encode_tq(
 
     write_tq_log(&args.input, work_dir, inf, sc.tq_ctx.metric_name());
     drop(prog);
-    join_one(display_handle);
 }
 
 #[cfg(feature = "vship")]
