@@ -32,12 +32,15 @@ fn main() {
     println!("cargo:rustc-link-search=native={home}/.local/src/dav1d/build/src");
     println!("cargo:rustc-link-search=native={home}/.local/src/vulkan/install/lib");
 
-    println!("cargo:rustc-link-lib=static=swresample");
-    println!("cargo:rustc-link-lib=static=avformat");
-    println!("cargo:rustc-link-lib=static=avcodec");
-    println!("cargo:rustc-link-lib=static=avutil");
-    println!("cargo:rustc-link-lib=static=vulkan");
-    println!("cargo:rustc-link-lib=static=dav1d");
+    #[cfg(feature = "static")]
+    {
+        println!("cargo:rustc-link-lib=static=swresample");
+        println!("cargo:rustc-link-lib=static=avformat");
+        println!("cargo:rustc-link-lib=static=avcodec");
+        println!("cargo:rustc-link-lib=static=avutil");
+        println!("cargo:rustc-link-lib=static=vulkan");
+        println!("cargo:rustc-link-lib=static=dav1d");
+    }
 
     find_static_lib(
         &[format!("{home}/.local/src/opus/install/lib")],
